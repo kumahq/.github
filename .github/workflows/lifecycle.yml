@@ -7,5 +7,3 @@ on:
 jobs:
   lifecycle:
     uses: kumahq/.github/.github/workflows/wfc_stale_issues.yml@main
-    with:
-      hours: 1

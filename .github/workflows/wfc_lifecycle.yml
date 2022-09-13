@@ -92,7 +92,7 @@ jobs:
     steps:
       - name: mark issues as stale
         run: |
-          if [[ `gh issue list --limit 1 --repo ${{ github.repository }} 2> /dev/null` ]]; then
+          if gh issue list --limit 1 --repo ${{ github.repository }} > /dev/null 2>&1; then
             before=`date -d '${{ inputs.daysBeforeStale }} days ago' --iso-8601`
             echo "Getting all issues untouched since: $before"
             issues=`gh issue list -S "-label:${{ inputs.staleLabel }} updated:<$before" -s open -R ${{ github.repository }} --json number -t '{{range .}}{{.number}} {{end}}'`
@@ -107,7 +107,7 @@ jobs:
       - name: close issues marked with label
         if: inputs.autocloseLabels
         run: |
-          if [[ `gh issue list --limit 1 --repo ${{ github.repository }} 2> /dev/null` ]]; then
+          if gh issue list --limit 1 --repo ${{ github.repository }} > /dev/null 2>&1; then
             issues=`gh issue list -S "label:${{ inputs.autocloseLabels }}" -s open -R ${{ github.repository }} --json number -t '{{range .}}{{.number}} {{end}}'`
             echo "Auto closing issues `echo $issues | wc -w` issues"
             for issue in $issues; do

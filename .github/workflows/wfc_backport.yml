@@ -24,8 +24,6 @@ jobs:
     if: (github.event.action == 'closed' || github.event.action == 'labeled' ) && github.event.pull_request.merged && contains(github.event.pull_request.labels.*.name, inputs.label)
     outputs:
       branches: ${{ steps.generate-matrix.outputs.branches }}
-    env:
-      GITHUB_TOKEN: ${{ secrets.actionToken }}
     runs-on: ubuntu-latest
     steps:
       - id: generate-matrix

@@ -53,10 +53,12 @@ jobs:
           append: true
           message: backporting to ${{ matrix.branch }} with [action](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
       - id: github-app-token
-        uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92 # v1.8.0
-        with:
-          app_id: ${{ secrets.appId }}
-          private_key: ${{ secrets.appPrivateKey }}
+#        uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92 # v1.8.0
+#        with:
+#          app_id: ${{ secrets.appId }}
+#          private_key: ${{ secrets.appPrivateKey }}
+        run: |
+          echo "token=${{ github.token }}" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v3
         with:
           ref: ${{ env.TARGET_BRANCH }}

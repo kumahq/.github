@@ -11,6 +11,16 @@ on:
         type: string
         default: "active-branches.json"
         required: false
+      gitUser:
+        description: "The user to use for commit"
+        type: string
+        default: "kumahq[bot]"
+        required: false
+      gitEmail:
+        description: "The user to use for commit"
+        type: string
+        default: "<110050114+kumahq[bot]@users.noreply.github.com>"
+        required: false
     secrets:
       actionToken:
         required: true
@@ -43,6 +53,8 @@ jobs:
         branch: ${{ fromJSON(needs.build-matrix.outputs.branches) }}
     runs-on: ubuntu-latest
     env:
+      GH_USER: ${{ inputs.gitUser }}
+      GH_EMAIL: ${{ inputs.gitEmail }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
       PR_TITLE: ${{ github.event.pull_request.title }}
       SHA: ${{ github.event.pull_request.merge_commit_sha }}
@@ -63,6 +75,10 @@ jobs:
         with:
           ref: ${{ env.TARGET_BRANCH }}
           fetch-depth: 0
+      - name: git-config
+        run: |
+          git config user.name "${GH_USER}"
+          git config user.email "${GH_EMAIL}"
       - name: cherry-pick
         run: |
           echo LABELS=${{ matrix.branch }} >> $GITHUB_ENV
@@ -98,5 +114,5 @@ jobs:
           draft: false
           labels: ${{ env.LABELS }}
           token: ${{ steps.github-app-token.outputs.token }}
-          committer: kumahq[bot] <110050114+kumahq[bot]@users.noreply.github.com>
-          author: kumahq[bot] <110050114+kumahq[bot]@users.noreply.github.com>
+          committer: ${{ env.GH_USER }} ${{ env.GH_EMAIL }}
+          author: ${{ env.GH_USER }} ${{ env.GH_EMAIL }}

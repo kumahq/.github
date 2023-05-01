@@ -9,7 +9,7 @@ on:
       branchFilePath:
         description: "A file that contains the list of active branches"
         type: string
-        default: "active_branches.json"
+        default: "active-branches.json"
         required: false
     secrets:
       actionToken:

@@ -67,6 +67,8 @@ jobs:
         with:
           app_id: ${{ secrets.appId }}
           private_key: ${{ secrets.appPrivateKey }}
+#        run: |
+#          echo "token=${{ github.token }}" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v3
         with:
           ref: ${{ env.TARGET_BRANCH }}
@@ -84,9 +86,9 @@ jobs:
             echo LABELS=${{ matrix.branch }},conflict >> $GITHUB_ENV
             echo "DIFF<<EOF" >> $GITHUB_ENV
             echo ":warning: :warning: :warning: Conflicts happened when cherry-picking! :warning: :warning: :warning:" >> $GITHUB_ENV
-            echo "```" >> $GITHUB_ENV
+            echo '```' >> $GITHUB_ENV
             git status >> $GITHUB_ENV
-            echo "```" >> $GITHUB_ENV
+            echo '```' >> $GITHUB_ENV
             echo "EOF" >> $GITHUB_ENV
             git add .
             git cherry-pick --continue

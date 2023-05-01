@@ -63,9 +63,12 @@ jobs:
         with:
           ref: ${{ env.TARGET_BRANCH }}
           fetch-depth: 0
-      - run: |
+      - name: cherry-pick
+        run: |
           echo LABELS=${{ matrix.branch }} >> $GITHUB_ENV
-          if [[ ! $(git cherry-pick ${{ env.SHA }}) ]]; then
+          if git cherry-pick ${{ env.SHA }}; then
+            echo "Cherry-picked without conflicts!"
+          else
             echo LABELS=${{ matrix.branch }},conflict >> $GITHUB_ENV
             echo "DIFF<<EOF" >> $GITHUB_ENV
             echo ":warning: :warning: :warning: Conflicts happened when cherry-picking! :warning: :warning: :warning:" >> $GITHUB_ENV

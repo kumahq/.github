@@ -27,6 +27,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - id: generate-matrix
+        name: generate-matrix
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           # The head -1 is because GITHUB_OUTPUT is easier to work with single line output and this file is created with automation in `lifecycle.yaml`
           TARGET_BRANCHES=$(gh api /repos/${{ github.repository }}/contents/${{ inputs.branchFilePath }} --jq '.content | @base64d' | jq  -cM '.[:index("${{ github.event.pull_request.base.ref }}")]')

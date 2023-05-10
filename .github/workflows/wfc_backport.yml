@@ -67,6 +67,7 @@ jobs:
         with:
           app_id: ${{ secrets.appId }}
           private_key: ${{ secrets.appPrivateKey }}
+# uncomment to try without the github app
 #        run: |
 #          echo "token=${{ github.token }}" >> $GITHUB_OUTPUT
       - uses: actions/checkout@v3

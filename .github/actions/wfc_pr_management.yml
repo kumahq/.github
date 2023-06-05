@@ -1,4 +1,4 @@
-name: WFC PR Management
+name: PR management composite
 description: Approve and merge Kuma-related PRs
 inputs:
   matchLabel:

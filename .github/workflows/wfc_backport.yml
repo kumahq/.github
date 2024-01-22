@@ -34,10 +34,6 @@ jobs:
       branches: ${{ steps.generate-matrix.outputs.branches }}
     runs-on: ubuntu-latest
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
-        with:
-          egress-policy: audit
       - id: generate-matrix
         name: generate-matrix
         env:
@@ -65,10 +61,6 @@ jobs:
       SHA: ${{ github.event.pull_request.merge_commit_sha }}
       TARGET_BRANCH: ${{ matrix.branch }}
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@eb238b55efaa70779f274895e782ed17c84f2895 # v2.6.1
-        with:
-          egress-policy: audit
       - uses: marocchino/sticky-pull-request-comment@efaaab3fd41a9c3de579aba759d2552635e590fd # v2.8.0
         with:
           append: true

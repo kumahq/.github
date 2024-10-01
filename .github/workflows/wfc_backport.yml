@@ -83,11 +83,12 @@ jobs:
           git config user.email "${GH_EMAIL}"
       - name: cherry-pick
         run: |
-          echo LABELS=${{ matrix.branch }} >> $GITHUB_ENV
+          INHERITED_LABELS=$(gh pr view --repo ${{ github.repository }} ${{ env.PR_NUMBER }} --json 'labels' --jq '[ .labels[] | select (.name != "backport") | .name ] | join(",")')
+          echo LABELS=$INHERITED_LABELS,${{ matrix.branch }} >> $GITHUB_ENV
           if git cherry-pick ${{ env.SHA }}; then
             echo "Cherry-picked without conflicts!"
           else
-            echo LABELS=${{ matrix.branch }},conflict >> $GITHUB_ENV
+            echo LABELS=$INHERITED_LABELS,${{ matrix.branch }},conflict >> $GITHUB_ENV
             echo "DIFF<<EOF" >> $GITHUB_ENV
             echo ":warning: :warning: :warning: Conflicts happened when cherry-picking! :warning: :warning: :warning:" >> $GITHUB_ENV
             echo '```' >> $GITHUB_ENV

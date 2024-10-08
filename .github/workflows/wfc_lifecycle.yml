@@ -127,7 +127,7 @@ jobs:
 
           before=`date -d '${{ inputs.daysBeforeStale }} days ago' --iso-8601`
           echo "Getting all issues untouched since: $before"
-          issues=`gh issue list -S "-label:${{ inputs.staleLabel }} updated:<$before" -s open -R ${{ github.repository }} --json number,milestone --jq '[.[] | select(.milestone == null) | .number] | join(" ")'`
+          issues=`gh issue list -S "-label:${{ inputs.staleLabel }} updated:<$before" -s open -R ${{ github.repository }} --json number,milestone --jq '[.[] | select(.milestone == null or .milestone.title == "backlog") | .number] | join(" ")'`
           echo "Updating `echo $issues | wc -w` issues"
           for issue in $issues; do
             gh issue edit $issue --add-label ${{ inputs.staleLabel }} -R ${{ github.repository }}

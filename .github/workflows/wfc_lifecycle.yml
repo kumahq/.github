@@ -157,7 +157,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: install gh groomer
         run: |
           if git diff --name-only  "@{24 hours ago}" "@{now}" -- org_labels.yml labels.yml; then
@@ -189,7 +189,7 @@ jobs:
     if: (github.event.workflow || github.event.schedule) && github.repository != 'kumahq/.github'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938 # v4.2.0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - id: github-app-token
         env:
           APP_ID: ${{ secrets.app_id }}

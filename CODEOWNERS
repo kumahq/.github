@@ -1,3 +1,5 @@
 # Default for any repo in kumahq, synced from kumahq/.github
+# kongmesh is added separately to avoid notifying the whole team on every PR 
+# See discussion here https://github.com/orgs/community/discussions/35673#discussioncomment-10340196
 
-*       @kumahq/kuma-maintainers
+*       @kumahq/kuma-maintainers @kongmesh

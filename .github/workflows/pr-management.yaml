@@ -3,9 +3,15 @@ on:
   pull_request:
     types: [labeled,opened,reopened,edited,ready_for_review]
 
+permissions: { }
+
 jobs:
   pr-mgmt:
     uses: kumahq/.github/.github/workflows/wfc_pr_management.yml@main
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
     with:
       approve: true
       merge: true

@@ -2,12 +2,45 @@ name: Bug Report
 description: File a bug Report
 labels: ["kind/bug", "triage/pending"]
 body:
-  - type: textarea
-    id: what-happened
+  - type: markdown
     attributes:
-      label: What happened?
-      description: Also tell us, what did you expect to happen?
-      placeholder: Tell us what you see!
-      value: "A bug happened!"
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: input
+    id: kuma-version
+    attributes:
+      label: Kuma Version
+      description: What version of Kuma are you running?
     validations:
       required: true
+  - type: textarea
+    id: describe
+    attributes:
+      label: Describe the bug
+      description: What went wrong?
+      placeholder: A clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: To Reproduce
+      description: Steps to reproduce the behavior.
+    validations:
+      required: false
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened?
+      placeholder: |
+        A clear and concise description of what you expected to happen.
+    validations:
+      required: false
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context (optional)
+      description: Add any other context about the problem here, such as screenshots, logs, applied policies, configuration.
+    validations:
+      required: false

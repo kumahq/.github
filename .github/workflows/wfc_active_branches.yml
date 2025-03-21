@@ -30,7 +30,9 @@ jobs:
             echo "No active branches found only using default branch"
             ACTIVE_BRANCHES=["${DEFAULT_BRANCH}"]
           fi
-          echo "default_branch=${DEFAULT_BRANCH}" > $GITHUB_OUTPUT
+          echo "default_branch=${DEFAULT_BRANCH}"
+          echo "branches=${ACTIVE_BRANCHES}"
+          echo "default_branch=${DEFAULT_BRANCH}" >> $GITHUB_OUTPUT
           echo "branches=${ACTIVE_BRANCHES}" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ github.token }}

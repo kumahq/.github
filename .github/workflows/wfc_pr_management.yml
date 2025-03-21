@@ -27,7 +27,7 @@ on:
 jobs:
   open:
     if: github.event.pull_request && (inputs.matchLabel == '' || contains(github.event.pull_request.labels.*.name, inputs.matchLabel))
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: approve
         if: fromJSON(inputs.approve)

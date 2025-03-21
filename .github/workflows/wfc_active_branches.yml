@@ -16,7 +16,7 @@ on:
 jobs:
   build-matrix:
     timeout-minutes: 1
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       branches: ${{ steps.generate-matrix.outputs.branches }}
       default_branch: ${{ steps.generate-matrix.outputs.default_branch }}

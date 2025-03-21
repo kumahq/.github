@@ -71,7 +71,7 @@ jobs:
     outputs:
       branches: ${{ steps.generate-matrix.outputs.branches }}
       default_branch: ${{ steps.generate-matrix.outputs.default_branch }}
-    uses: ./.github/workflows/wfc_active_branches.yaml
+    uses: ./.github/workflows/wfc_active_branches.yml
   harden_security:
     needs: [branches]
     name: Harden Security

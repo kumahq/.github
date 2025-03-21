@@ -83,8 +83,8 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     strategy:
+      fail-fast: false
       matrix:
-        fail-fast: false
         branch: ${{fromJson(needs.branches.outputs.branches)}}
     steps:
       - name: Checkout code

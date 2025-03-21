@@ -68,13 +68,7 @@ on:
 jobs:
   branches:
     if: github.event.workflow || github.event.schedule
-    runs-on: ubuntu-24.04
-    outputs:
-      branches: ${{ steps.generate-matrix.outputs.branches }}
-      default_branch: ${{ steps.generate-matrix.outputs.default_branch }}
-    steps:
-      - id: generate-matrix
-        uses: ./.github/workflows/wfc_active_branches.yml
+    uses: ./.github/workflows/wfc_active_branches.yml
   harden_security:
     needs: [branches]
     name: Harden Security
@@ -85,7 +79,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        branch: ${{fromJson(needs.branches.outputs.branches)}}
+        branch: ${{fromJSON(needs.branches.outputs.branches)}}
     steps:
       - name: Checkout code
         uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4

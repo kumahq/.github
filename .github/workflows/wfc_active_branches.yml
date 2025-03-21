@@ -9,10 +9,10 @@ on:
     outputs:
       branches:
         description: a json list of all branches that are considered active
-        value: ${{ steps.generate-matrix.outputs.branches }}
+        value: ${{ jobs.build-matrix.outputs.branches }}
       default_branch:
         description: the default branch of the repo
-        value: ${{ steps.generate-matrix.outputs.default_branch }}
+        value: ${{ jobs.build-matrix.outputs.default_branch }}
 jobs:
   build-matrix:
     timeout-minutes: 1

@@ -66,6 +66,30 @@ on:
       private_key:
         required: false
 jobs:
+  branches:
+    if: github.event.workflow || github.event.schedule
+    outputs:
+      branches: ${{ steps.generate-matrix.outputs.branches }}
+      default_branch: ${{ steps.generate-matrix.outputs.default_branch }}
+    uses: ./.github/workflows/wfc_active_branches.yaml
+  harden_security:
+    needs: [branches]
+    name: Harden Security
+    runs-on: ubuntu-latest
+    if: github.event.workflow || github.event.schedule
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    strategy:
+      matrix:
+        fail-fast: false
+        branch: ${{fromJson(needs.branches.outputs.branches)}}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
+        with:
+          ref: ${{ matrix.branch }}
+      - name: Ensure SHA pinned actions
+        uses: zgosalvez/github-actions-ensure-sha-pinned-actions@25ed13d0628a1601b4b44048e63cc4328ed03633 # v3.0.22
   open:
     if: (github.event.action == 'reopened' || github.event.action == 'opened')
     env:

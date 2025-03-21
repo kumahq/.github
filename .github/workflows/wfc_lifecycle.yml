@@ -68,10 +68,13 @@ on:
 jobs:
   branches:
     if: github.event.workflow || github.event.schedule
+    runs-on: ubuntu-latest
     outputs:
       branches: ${{ steps.generate-matrix.outputs.branches }}
       default_branch: ${{ steps.generate-matrix.outputs.default_branch }}
-    uses: ./.github/workflows/wfc_active_branches.yml
+    steps:
+      - id: generate-matrix
+        uses: ./.github/workflows/wfc_active_branches.yml
   harden_security:
     needs: [branches]
     name: Harden Security

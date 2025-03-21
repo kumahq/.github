@@ -25,8 +25,8 @@ jobs:
         run: |
           # The head -1 is because GITHUB_OUTPUT is easier to work with single line output and this file is created with automation in `lifecycle.yaml`
           DEFAULT_BRANCH=`gh api /repos/${{ github.repository }} --jq '.default_branch' | head -1`
-          ACTIVE_BRANCHES=`gh api /repos/${{ github.repository }}/contents/${{ inputs.activeBranchesFile}} --jq '.content | @base64d' | head -1`
-          if [[ "$ACTIVE_BRANCHES" ~= "" ]]; then
+          ACTIVE_BRANCHES=`gh api /repos/${{ github.repository }}/contents/${{ inputs.activeBranchesFile}} --jq '.content | @base64d' | head -1 || ""`
+          if [[ "$ACTIVE_BRANCHES" =~ "Not Found" ]]; then
             echo "No active branches found only using default branch"
             ACTIVE_BRANCHES=["${DEFAULT_BRANCH}"]
           fi

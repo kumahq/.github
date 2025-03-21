@@ -1,0 +1,38 @@
+on:
+  workflow_call:
+    inputs:
+      activeBranchesFile:
+        description: "a json file in the repo that contains a json list of all branches that are considered active"
+        type: string
+        default: "active-branches.json"
+        required: false
+    outputs:
+      branches:
+        description: a json list of all branches that are considered active
+        value: ${{ jobs.build-matrix.outputs.branches }}
+      default_branch:
+        description: the default branch of the repo
+        value: ${{ jobs.build-matrix.outputs.default_branch }}
+jobs:
+  build-matrix:
+    timeout-minutes: 1
+    runs-on: ubuntu-24.04
+    outputs:
+      branches: ${{ steps.generate-matrix.outputs.branches }}
+      default_branch: ${{ steps.generate-matrix.outputs.default_branch }}
+    steps:
+      - id: generate-matrix
+        run: |
+          # The head -1 is because GITHUB_OUTPUT is easier to work with single line output and this file is created with automation in `lifecycle.yaml`
+          DEFAULT_BRANCH=`gh api /repos/${{ github.repository }} --jq '.default_branch' | head -1`
+          ACTIVE_BRANCHES=`gh api /repos/${{ github.repository }}/contents/${{ inputs.activeBranchesFile}} --jq '.content | @base64d' | head -1 || ""`
+          if [[ "$ACTIVE_BRANCHES" =~ "Not Found" ]]; then
+            echo "No active branches found only using default branch"
+            ACTIVE_BRANCHES="[\"${DEFAULT_BRANCH}\"]"
+          fi
+          echo "default_branch=${DEFAULT_BRANCH}"
+          echo "branches=${ACTIVE_BRANCHES}"
+          echo "default_branch=${DEFAULT_BRANCH}" >> $GITHUB_OUTPUT
+          echo "branches=${ACTIVE_BRANCHES}" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

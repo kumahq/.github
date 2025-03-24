@@ -7,7 +7,7 @@ permissions: { }
 
 jobs:
   pr-mgmt:
-    uses: kumahq/.github/.github/workflows/wfc_pr_management.yml@main
+    uses: ./.github/workflows/wfc_pr_management.yml
     permissions:
       contents: read
       issues: write

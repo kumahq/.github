@@ -100,7 +100,7 @@ jobs:
         with:
           # remove when https://github.com/slsa-framework/slsa-github-generator/issues/3498 resolved
           allowlist: |
-            slsa-framework/
+            slsa-framework/slsa-github-generator
   open:
     if: (github.event.action == 'reopened' || github.event.action == 'opened')
     env:

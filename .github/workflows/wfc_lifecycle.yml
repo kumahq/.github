@@ -98,8 +98,9 @@ jobs:
       - name: Ensure SHA pinned actions
         uses: zgosalvez/github-actions-ensure-sha-pinned-actions@fc87bb5b5a97953d987372e74478de634726b3e5 # v3.0.25
         with:
+          # remove when https://github.com/slsa-framework/slsa-github-generator/issues/3498 resolved
           allowlist: |
-            slsa-framework/slsa-github-generator # remove when https://github.com/slsa-framework/slsa-github-generator/issues/3498 resolved
+            slsa-framework/slsa-github-generator
   open:
     if: (github.event.action == 'reopened' || github.event.action == 'opened')
     env:

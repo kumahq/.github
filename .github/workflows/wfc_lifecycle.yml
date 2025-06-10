@@ -228,7 +228,6 @@ jobs:
       - id: github-app-token
         env:
           APP_ID: ${{ secrets.APP_ID }}
-        if: ${{ env.APP_ID }}
         uses: tibdex/github-app-token@3beb63f4bd073e61482598c45c71c1019b59b73a # v2.1.0
         with:
           app_id: ${{ secrets.APP_ID }}

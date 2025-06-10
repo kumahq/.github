@@ -71,9 +71,9 @@ on:
         default: "triage/needs-reproducing"
         required: false
     secrets:
-      app_id:
+      APP_ID:
         required: false
-      private_key:
+      PRIVATE_KEY:
         required: false
 jobs:
   branches:
@@ -225,15 +225,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - id: github-app-token
-        env:
-          APP_ID: ${{ secrets.APP_ID }}
-        uses: tibdex/github-app-token@3beb63f4bd073e61482598c45c71c1019b59b73a # v2.1.0
+      - name: Generate GitHub app token
+        id: github-app-token
+        uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
         with:
-          app_id: ${{ secrets.APP_ID }}
-          private_key: ${{ secrets.PRIVATE_KEY }}
-          permissions: >-
-            {"pull_requests": "write", "contents": "read"}
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
       - name: Sync files from kumahq/.github
         env:
           GITHUB_TOKEN: ${{ steps.github-app-token.outputs.token || secrets.GITHUB_TOKEN }}

@@ -233,7 +233,7 @@ jobs:
         uses: actions/create-github-app-token@df432ceedc7162793a195dd1713ff69aefc7379e # v2.0.6
         with:
           app-id: ${{ secrets.app_id }}
-          private-key: ${{ secrets.private-key }}
+          private-key: ${{ secrets.private_key }}
       - name: Sync files from kumahq/.github
         env:
           GITHUB_TOKEN: ${{ steps.github-app-token.outputs.token || secrets.GITHUB_TOKEN }}

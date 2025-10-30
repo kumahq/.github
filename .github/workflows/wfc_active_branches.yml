@@ -28,7 +28,7 @@ jobs:
           ACTIVE_BRANCHES=`gh api /repos/${{ github.repository }}/contents/${{ inputs.activeBranchesFile}} --jq '.content | @base64d' | head -1 || ""`
           if [[ "$ACTIVE_BRANCHES" =~ "Not Found" ]]; then
             echo "No active branches found only using default branch"
-            ACTIVE_BRANCHES="[\"${DEFAULT_BRANCH}\"]"
+            ACTIVE_BRANCHES="{\"baseBranchPatterns\":[\"${DEFAULT_BRANCH}\"]}"
           fi
           echo "default_branch=${DEFAULT_BRANCH}"
           echo "branches=${ACTIVE_BRANCHES}"

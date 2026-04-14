@@ -268,7 +268,7 @@ jobs:
           FILES_TO_IGNORE: ${{ inputs.filesToIgnore }}
         run: |
           for f in $(echo "$FILES_TO_SYNC" | tr "," " "); do
-            if echo ",$FILES_TO_IGNORE," | grep -q ",${f},"; then
+            if echo ",$FILES_TO_IGNORE," | grep -Fq ",${f},"; then
               echo "${f} is ignored, not syncing it"
             else
               gh api "/repos/kumahq/.github/contents/${f}" -t '{{.content}}' | base64 -d > "$f"

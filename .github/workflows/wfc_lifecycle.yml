@@ -178,13 +178,13 @@ jobs:
             exit 0
           fi
 
-          before=`date -d "$DAYS_BEFORE_STALE days ago" --iso-8601`
+          before=$(date -d "$DAYS_BEFORE_STALE days ago" --iso-8601)
           echo "Getting all issues untouched since: $before"
-          issues=`gh issue list -S "-label:$STALE_LABEL -label:$SERVICE_REVIEW_LABEL -label:$NEEDS_REPRODUCING_LABEL updated:<$before" -s open -R "$GH_REPOSITORY" --json number,milestone --jq '[.[] | select(.milestone == null or .milestone.title == "backlog") | .number] | join(" ")'`
-          echo "Updating `echo $issues | wc -w` issues"
+          issues=$(gh issue list -S "-label:$STALE_LABEL -label:$SERVICE_REVIEW_LABEL -label:$NEEDS_REPRODUCING_LABEL updated:<$before" -s open -R "$GH_REPOSITORY" --json number,milestone --jq '[.[] | select(.milestone == null or .milestone.title == "backlog") | .number] | join(" ")')
+          echo "Updating $(echo "$issues" | wc -w) issues"
           for issue in $issues; do
-            gh issue edit $issue --add-label "$STALE_LABEL" -R "$GH_REPOSITORY"
-            gh issue comment $issue -R "$GH_REPOSITORY" --body "$COMMENT"
+            gh issue edit "$issue" --add-label "$STALE_LABEL" -R "$GH_REPOSITORY"
+            gh issue comment "$issue" -R "$GH_REPOSITORY" --body "$COMMENT"
           done
         env:
           COMMENT: ${{ inputs.staleComment }}
@@ -200,12 +200,12 @@ jobs:
             exit 0
           fi
 
-          issues=`gh issue list -S "label:$AUTOCLOSE_LABELS" -s open -R "$GH_REPOSITORY" --json number -t '{{range .}}{{.number}} {{end}}'`
-          echo "Auto closing issues `echo $issues | wc -w` issues"
+          issues=$(gh issue list -S "label:$AUTOCLOSE_LABELS" -s open -R "$GH_REPOSITORY" --json number -t '{{range .}}{{.number}} {{end}}')
+          echo "Auto closing issues $(echo "$issues" | wc -w) issues"
           for issue in $issues; do
-            gh issue edit $issue --remove-label "$OPEN_LABELS" -R "$GH_REPOSITORY"
-            gh issue comment $issue -R "$GH_REPOSITORY" --body "$COMMENT"
-            gh issue close $issue -R "$GH_REPOSITORY"
+            gh issue edit "$issue" --remove-label "$OPEN_LABELS" -R "$GH_REPOSITORY"
+            gh issue comment "$issue" -R "$GH_REPOSITORY" --body "$COMMENT"
+            gh issue close "$issue" -R "$GH_REPOSITORY"
           done
         env:
           COMMENT: ${{ inputs.autocloseComment }}
@@ -267,11 +267,11 @@ jobs:
           FILES_TO_SYNC: ${{ inputs.filesToSync }}
           FILES_TO_IGNORE: ${{ inputs.filesToIgnore }}
         run: |
-          for f in `echo "$FILES_TO_SYNC" | tr "," " "`; do
+          for f in $(echo "$FILES_TO_SYNC" | tr "," " "); do
             if echo ",$FILES_TO_IGNORE," | grep -q ",${f},"; then
               echo "${f} is ignored, not syncing it"
             else
-              gh api /repos/kumahq/.github/contents/${f}  -t '{{.content}}' | base64 -d > ${f}
+              gh api "/repos/kumahq/.github/contents/${f}" -t '{{.content}}' | base64 -d > "$f"
             fi
           done
       - name: "Create Pull Request"

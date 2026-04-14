@@ -110,13 +110,19 @@ jobs:
       - name: add labels
         if: "!contains(github.event.issue.labels.*.name, inputs.acceptedLabel)"
         run: |
-          gh issue edit ${{ github.event.issue.number }} --add-label ${{ inputs.openLabels }} -R ${{ github.repository }}
+          gh issue edit "$ISSUE_NUMBER" --add-label "$OPEN_LABELS" -R "$GH_REPOSITORY"
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          OPEN_LABELS: ${{ inputs.openLabels }}
+          GH_REPOSITORY: ${{ github.repository }}
       - name: add comment
         if: inputs.openComment && !contains(github.event.issue.labels.*.name, inputs.acceptedLabel)
         run: |
-          gh issue comment ${{ github.event.issue.number }} -R ${{ github.repository }} --body "$COMMENT"
+          gh issue comment "$ISSUE_NUMBER" -R "$GH_REPOSITORY" --body "$COMMENT"
         env:
           COMMENT: ${{ inputs.openComment }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          GH_REPOSITORY: ${{ github.repository }}
   autoclose:
     if: github.event.action == 'labeled' && contains(inputs.autocloseLabels, github.event.label.name)
     env:
@@ -126,13 +132,19 @@ jobs:
       - name: comment on issue
         if: github.event.issue.state != 'closed'
         run: |
-          gh issue comment ${{ github.event.issue.number }} -R ${{ github.repository }} --body "$COMMENT"
+          gh issue comment "$ISSUE_NUMBER" -R "$GH_REPOSITORY" --body "$COMMENT"
         env:
           COMMENT: ${{ inputs.autocloseComment }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          GH_REPOSITORY: ${{ github.repository }}
       - name: close issues marked with label
         run: |
-          gh issue edit ${{ github.event.issue.number }} --remove-label ${{ inputs.openLabels }} -R ${{ github.repository }}
-          gh api -X PATCH repos/${{ github.repository }}/issues/${{ github.event.issue.number }} -f state=closed -f state_reason=not_planned
+          gh issue edit "$ISSUE_NUMBER" --remove-label "$OPEN_LABELS" -R "$GH_REPOSITORY"
+          gh api -X PATCH repos/"$GH_REPOSITORY"/issues/"$ISSUE_NUMBER" -f state=closed -f state_reason=not_planned
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          OPEN_LABELS: ${{ inputs.openLabels }}
+          GH_REPOSITORY: ${{ github.repository }}
   removeAutoclose:
     if: github.event.action == 'reopened' && contains(inputs.autocloseLabels, github.event.label.name)
     env:
@@ -141,12 +153,18 @@ jobs:
     steps:
       - name: comment on issue
         run: |
-          gh issue comment ${{ github.event.issue.number }} -R ${{ github.repository }} --body "$COMMENT"
+          gh issue comment "$ISSUE_NUMBER" -R "$GH_REPOSITORY" --body "$COMMENT"
         env:
           COMMENT: ${{ inputs.unautocloseComment }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          GH_REPOSITORY: ${{ github.repository }}
       - name: remove auto close labels
         run: |
-          gh issue edit ${{ github.event.issue.number }} --remove-label ${{ inputs.autocloseLabels }} -R ${{ github.repository }}
+          gh issue edit "$ISSUE_NUMBER" --remove-label "$AUTOCLOSE_LABELS" -R "$GH_REPOSITORY"
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          AUTOCLOSE_LABELS: ${{ inputs.autocloseLabels }}
+          GH_REPOSITORY: ${{ github.repository }}
   periodicCleanup:
     needs: syncMeta
     if: github.event.workflow || github.event.schedule
@@ -156,36 +174,44 @@ jobs:
     steps:
       - name: mark issues as stale
         run: |
-          if ! gh issue list --limit 1 --repo ${{ github.repository }} > /dev/null 2>&1; then
+          if ! gh issue list --limit 1 --repo "$GH_REPOSITORY" > /dev/null 2>&1; then
             exit 0
           fi
 
-          before=`date -d '${{ inputs.daysBeforeStale }} days ago' --iso-8601`
+          before=$(date -d "$DAYS_BEFORE_STALE days ago" --iso-8601)
           echo "Getting all issues untouched since: $before"
-          issues=`gh issue list -S "-label:${{ inputs.staleLabel }} -label:${{ inputs.serviceReviewLabel }} -label:${{ inputs.needsReproducingLabel }} updated:<$before" -s open -R ${{ github.repository }} --json number,milestone --jq '[.[] | select(.milestone == null or .milestone.title == "backlog") | .number] | join(" ")'`
-          echo "Updating `echo $issues | wc -w` issues"
+          issues=$(gh issue list -S "-label:$STALE_LABEL -label:$SERVICE_REVIEW_LABEL -label:$NEEDS_REPRODUCING_LABEL updated:<$before" -s open -R "$GH_REPOSITORY" --json number,milestone --jq '[.[] | select(.milestone == null or .milestone.title == "backlog") | .number] | join(" ")')
+          echo "Updating $(echo "$issues" | wc -w) issues"
           for issue in $issues; do
-            gh issue edit $issue --add-label ${{ inputs.staleLabel }} -R ${{ github.repository }}
-            gh issue comment $issue -R ${{ github.repository }} --body "$COMMENT"
+            gh issue edit "$issue" --add-label "$STALE_LABEL" -R "$GH_REPOSITORY"
+            gh issue comment "$issue" -R "$GH_REPOSITORY" --body "$COMMENT"
           done
         env:
           COMMENT: ${{ inputs.staleComment }}
+          GH_REPOSITORY: ${{ github.repository }}
+          DAYS_BEFORE_STALE: ${{ inputs.daysBeforeStale }}
+          STALE_LABEL: ${{ inputs.staleLabel }}
+          SERVICE_REVIEW_LABEL: ${{ inputs.serviceReviewLabel }}
+          NEEDS_REPRODUCING_LABEL: ${{ inputs.needsReproducingLabel }}
       - name: close issues marked with label
         if: inputs.autocloseLabels
         run: |
-          if ! gh issue list --limit 1 --repo ${{ github.repository }} > /dev/null 2>&1; then
+          if ! gh issue list --limit 1 --repo "$GH_REPOSITORY" > /dev/null 2>&1; then
             exit 0
           fi
 
-          issues=`gh issue list -S "label:${{ inputs.autocloseLabels }}" -s open -R ${{ github.repository }} --json number -t '{{range .}}{{.number}} {{end}}'`
-          echo "Auto closing issues `echo $issues | wc -w` issues"
+          issues=$(gh issue list -S "label:$AUTOCLOSE_LABELS" -s open -R "$GH_REPOSITORY" --json number -t '{{range .}}{{.number}} {{end}}')
+          echo "Auto closing issues $(echo "$issues" | wc -w) issues"
           for issue in $issues; do
-            gh issue edit $issue --remove-label ${{ inputs.openLabels }} -R ${{ github.repository }}
-            gh issue comment $issue -R ${{ github.repository }} --body "$COMMENT"
-            gh issue close $issue -R ${{ github.repository }}
+            gh issue edit "$issue" --remove-label "$OPEN_LABELS" -R "$GH_REPOSITORY"
+            gh issue comment "$issue" -R "$GH_REPOSITORY" --body "$COMMENT"
+            gh issue close "$issue" -R "$GH_REPOSITORY"
           done
         env:
           COMMENT: ${{ inputs.autocloseComment }}
+          GH_REPOSITORY: ${{ github.repository }}
+          AUTOCLOSE_LABELS: ${{ inputs.autocloseLabels }}
+          OPEN_LABELS: ${{ inputs.openLabels }}
   syncMeta:
     if: github.event.workflow || github.event.schedule
     env:
@@ -204,22 +230,23 @@ jobs:
           # Kept for backward compatibility
           if [[ -f org_labels.yml ]]; then
             echo "Syncing org labels"
-            ./github-pm-groomer label-sync -p org_labels.yml -r ${{ github.repository }}
+            ./github-pm-groomer label-sync -p org_labels.yml -r "$GH_REPOSITORY"
           fi
           if [[ -f labels.yml ]]; then
             echo "Syncing repo labels"
-            ./github-pm-groomer label-sync -p labels.yml -r ${{ github.repository }}
+            ./github-pm-groomer label-sync -p labels.yml -r "$GH_REPOSITORY"
           fi
           if [[ -f meta_org.yml ]]; then
             echo "Syncing org meta"
-            ./github-pm-groomer meta-sync -p meta_org.yml -r ${{ github.repository }}
+            ./github-pm-groomer meta-sync -p meta_org.yml -r "$GH_REPOSITORY"
           fi
           if [[ -f meta_repo.yml ]]; then
             echo "Syncing repo meta"
-            ./github-pm-groomer meta-sync -p meta_repo.yml -r ${{ github.repository }}
+            ./github-pm-groomer meta-sync -p meta_repo.yml -r "$GH_REPOSITORY"
           fi
         env:
           GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPOSITORY: ${{ github.repository }}
   syncFilesFromGithub:
     if: (github.event.workflow || github.event.schedule) && github.repository != 'kumahq/.github'
     runs-on: ubuntu-24.04
@@ -237,12 +264,14 @@ jobs:
       - name: Sync files from kumahq/.github
         env:
           GITHUB_TOKEN: ${{ steps.github-app-token.outputs.token || secrets.GITHUB_TOKEN }}
+          FILES_TO_SYNC: ${{ inputs.filesToSync }}
+          FILES_TO_IGNORE: ${{ inputs.filesToIgnore }}
         run: |
-          for f in `echo '${{ inputs.filesToSync }}' | tr "," " "`; do
-            if echo ',${{ inputs.filesToIgnore }},' | grep -q ",${f},"; then
+          for f in $(echo "$FILES_TO_SYNC" | tr "," " "); do
+            if echo ",$FILES_TO_IGNORE," | grep -Fq ",${f},"; then
               echo "${f} is ignored, not syncing it"
             else
-              gh api /repos/kumahq/.github/contents/${f}  -t '{{.content}}' | base64 -d > ${f}
+              gh api "/repos/kumahq/.github/contents/${f}" -t '{{.content}}' | base64 -d > "$f"
             fi
           done
       - name: "Create Pull Request"

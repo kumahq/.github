@@ -24,8 +24,8 @@ jobs:
       - id: generate-matrix
         run: |
           # The head -1 is because GITHUB_OUTPUT is easier to work with single line output and this file is created with automation in `lifecycle.yaml`
-          DEFAULT_BRANCH=`gh api /repos/"$GH_REPOSITORY" --jq '.default_branch' | head -1`
-          ACTIVE_BRANCHES=`gh api /repos/"$GH_REPOSITORY"/contents/"$ACTIVE_BRANCHES_FILE" --jq '.content | @base64d' | head -1 || true`
+          DEFAULT_BRANCH=$(gh api /repos/"$GH_REPOSITORY" --jq '.default_branch' | head -1)
+          ACTIVE_BRANCHES=$(gh api /repos/"$GH_REPOSITORY"/contents/"$ACTIVE_BRANCHES_FILE" --jq '.content | @base64d' | head -1 || true)
           if [[ "$ACTIVE_BRANCHES" =~ "Not Found" ]]; then
             echo "No active branches found only using default branch"
             ACTIVE_BRANCHES="{\"baseBranchPatterns\":[\"${DEFAULT_BRANCH}\"]}"

@@ -70,6 +70,11 @@ on:
         type: string
         default: "triage/needs-reproducing"
         required: false
+      shaPinAllowlist:
+        description: "Newline separated owners or repositories the SHA pin check ignores, added to the built-in list"
+        type: string
+        default: ""
+        required: false
     secrets:
       app_id:
         required: false
@@ -101,6 +106,7 @@ jobs:
           # remove when https://github.com/slsa-framework/slsa-github-generator/issues/3498 resolved
           allowlist: |
             slsa-framework/slsa-github-generator
+            ${{ inputs.shaPinAllowlist }}
   open:
     if: (github.event.action == 'reopened' || github.event.action == 'opened')
     env:

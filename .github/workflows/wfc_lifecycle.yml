@@ -289,7 +289,6 @@ jobs:
           GH_REPO: ${{ github.repository }}
           BRANCH: chore/upgrade-githubfiles
           TITLE: "ci(.github): automatic sync of files in kumahq/.github"
-          FILES_TO_SYNC: ${{ inputs.filesToSync }}
           GIT_AUTHOR_NAME: github-actions[bot]
           GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
           GIT_COMMITTER_NAME: GitHub
@@ -302,7 +301,7 @@ jobs:
           if [[ -z "$base" ]]; then
             base="$(gh repo view --json defaultBranchRef --jq .defaultBranchRef.name)"
           fi
-          git add -A -- ${FILES_TO_SYNC//,/ }
+          git add -A
           if git diff --cached --quiet; then
             echo "No changes to sync"
             if git ls-remote --exit-code --heads origin "$BRANCH" > /dev/null; then

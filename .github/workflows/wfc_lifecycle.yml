@@ -258,6 +258,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Generate GitHub app token
         id: github-app-token
         env:
@@ -272,6 +274,7 @@ jobs:
           GITHUB_TOKEN: ${{ steps.github-app-token.outputs.token || secrets.GITHUB_TOKEN }}
           FILES_TO_SYNC: ${{ inputs.filesToSync }}
           FILES_TO_IGNORE: ${{ inputs.filesToIgnore }}
+        shell: bash
         run: |
           for f in $(echo "$FILES_TO_SYNC" | tr "," " "); do
             if echo ",$FILES_TO_IGNORE," | grep -Fq ",${f},"; then
@@ -281,17 +284,36 @@ jobs:
             fi
           done
       - name: "Create Pull Request"
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
-        id: newPR
-        with:
-          path: .
-          commit-message: "ci(.github): automatic sync of files in kumahq/.github"
-          committer: GitHub <noreply@github.com>
-          author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
-          signoff: true
-          token: ${{ steps.github-app-token.outputs.token || secrets.GITHUB_TOKEN }}
-          branch: chore/upgrade-githubfiles
-          delete-branch: true
-          title: "ci(.github): automatic sync of files in kumahq/.github"
-          body: "Automatic sync of files from https://github.com/kumahq/.github."
-          draft: false
+        env:
+          GH_TOKEN: ${{ steps.github-app-token.outputs.token || secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          BRANCH: chore/upgrade-githubfiles
+          TITLE: "ci(.github): automatic sync of files in kumahq/.github"
+          FILES_TO_SYNC: ${{ inputs.filesToSync }}
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: GitHub
+          GIT_COMMITTER_EMAIL: noreply@github.com
+        shell: bash
+        run: |
+          gh auth setup-git
+
+          base="$(git branch --show-current)"
+          if [[ -z "$base" ]]; then
+            base="$(gh repo view --json defaultBranchRef --jq .defaultBranchRef.name)"
+          fi
+          git add -A -- ${FILES_TO_SYNC//,/ }
+          if git diff --cached --quiet; then
+            echo "No changes to sync"
+            if git ls-remote --exit-code --heads origin "$BRANCH" > /dev/null; then
+              git push origin --delete "$BRANCH"
+            fi
+            exit 0
+          fi
+
+          git commit -s -m "$TITLE"
+          git push --force origin "HEAD:refs/heads/${BRANCH}"
+          if [[ -z "$(gh pr list --head "$BRANCH" --state open --json number --jq '.[].number')" ]]; then
+            gh pr create --head "$BRANCH" --base "$base" --title "$TITLE" \
+              --body "Automatic sync of files from https://github.com/kumahq/.github."
+          fi

@@ -281,17 +281,33 @@ jobs:
             fi
           done
       - name: "Create Pull Request"
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
-        id: newPR
-        with:
-          path: .
-          commit-message: "ci(.github): automatic sync of files in kumahq/.github"
-          committer: GitHub <noreply@github.com>
-          author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
-          signoff: true
-          token: ${{ steps.github-app-token.outputs.token || secrets.GITHUB_TOKEN }}
-          branch: chore/upgrade-githubfiles
-          delete-branch: true
-          title: "ci(.github): automatic sync of files in kumahq/.github"
-          body: "Automatic sync of files from https://github.com/kumahq/.github."
-          draft: false
+        env:
+          GH_TOKEN: ${{ steps.github-app-token.outputs.token || secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          BRANCH: chore/upgrade-githubfiles
+          TITLE: "ci(.github): automatic sync of files in kumahq/.github"
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: GitHub
+          GIT_COMMITTER_EMAIL: noreply@github.com
+        run: |
+          # checkout persists GITHUB_TOKEN as an extraheader, which would override the app token
+          git config --unset-all http.https://github.com/.extraheader || true
+          gh auth setup-git
+
+          base="$(git branch --show-current)"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to sync"
+            if git ls-remote --exit-code --heads origin "$BRANCH" > /dev/null; then
+              git push origin --delete "$BRANCH"
+            fi
+            exit 0
+          fi
+
+          git commit -s -m "$TITLE"
+          git push --force origin "HEAD:refs/heads/${BRANCH}"
+          if [[ -z "$(gh pr list --head "$BRANCH" --base "$base" --state open --json number --jq '.[].number')" ]]; then
+            gh pr create --head "$BRANCH" --base "$base" --title "$TITLE" \
+              --body "Automatic sync of files from https://github.com/kumahq/.github."
+          fi

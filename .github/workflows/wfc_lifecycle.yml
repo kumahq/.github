@@ -47,8 +47,20 @@ on:
         type: string
         description: "A comment to add to the issue when marking as stale"
         default: |
-          This issue was inactive for 90 days. It will be reviewed in the next triage meeting and might be closed.
+          This issue was inactive for 90 days. It will be closed in 14 days if there is no further activity.
           If you think this issue is still relevant, please comment on it or attend the next triage meeting.
+        required: false
+      daysBeforeClose:
+        description: "The number of days a stale issue has to be inactive before being closed, -1 to never close"
+        type: number
+        default: 14
+        required: false
+      staleCloseComment:
+        type: string
+        description: "A comment to add to the issue when closing it after being stale"
+        default: |
+          Automatically closing the issue after 14 days of inactivity since it was marked as stale.
+          Feel free to reopen it if it is still relevant.
         required: false
       filesToSync:
         type: string
@@ -178,27 +190,18 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     runs-on: ubuntu-24.04
     steps:
-      - name: mark issues as stale
-        run: |
-          if ! gh issue list --limit 1 --repo "$GH_REPOSITORY" > /dev/null 2>&1; then
-            exit 0
-          fi
-
-          before=$(date -d "$DAYS_BEFORE_STALE days ago" --iso-8601)
-          echo "Getting all issues untouched since: $before"
-          issues=$(gh issue list -S "-label:$STALE_LABEL -label:$SERVICE_REVIEW_LABEL -label:$NEEDS_REPRODUCING_LABEL updated:<$before" -s open -R "$GH_REPOSITORY" --json number,milestone --jq '[.[] | select(.milestone == null or .milestone.title == "backlog") | .number] | join(" ")')
-          echo "Updating $(echo "$issues" | wc -w) issues"
-          for issue in $issues; do
-            gh issue edit "$issue" --add-label "$STALE_LABEL" -R "$GH_REPOSITORY"
-            gh issue comment "$issue" -R "$GH_REPOSITORY" --body "$COMMENT"
-          done
-        env:
-          COMMENT: ${{ inputs.staleComment }}
-          GH_REPOSITORY: ${{ github.repository }}
-          DAYS_BEFORE_STALE: ${{ inputs.daysBeforeStale }}
-          STALE_LABEL: ${{ inputs.staleLabel }}
-          SERVICE_REVIEW_LABEL: ${{ inputs.serviceReviewLabel }}
-          NEEDS_REPRODUCING_LABEL: ${{ inputs.needsReproducingLabel }}
+      - name: mark and close stale issues
+        uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # v11.0.0
+        with:
+          days-before-stale: ${{ inputs.daysBeforeStale }}
+          days-before-close: ${{ inputs.daysBeforeClose }}
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+          stale-issue-label: ${{ inputs.staleLabel }}
+          stale-issue-message: ${{ inputs.staleComment }}
+          close-issue-message: ${{ inputs.staleCloseComment }}
+          exempt-issue-labels: ${{ inputs.serviceReviewLabel }},${{ inputs.needsReproducingLabel }}
+          exempt-all-issue-milestones: true
       - name: close issues marked with label
         if: inputs.autocloseLabels
         run: |
